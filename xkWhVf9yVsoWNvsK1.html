@@ -1,0 +1,648 @@
+<html><head><base href="https://example.com"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>لعبة محمد أيمن</title>
+<style>
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+.start-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+  text-align: center;
+}
+
+.start-screen h1 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.start-screen p {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.environment-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.environment-button {
+  width: 150px;
+  height: 100px;
+  background-size: cover;
+  background-position: center;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.environment-button:hover {
+  transform: scale(1.05);
+}
+
+.environment-button.selected {
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+#start-game {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+#start-game:hover {
+  background-color: #45a049;
+}
+
+#start-game:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+#game-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.hidden {
+  display: none;
+}
+
+#game-over-screen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 10px;
+  color: white;
+}
+
+#summary {
+  margin-top: 20px;
+}
+
+#restart-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#restart-button:hover {
+  background-color: #45a049;
+}
+
+#score-container {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+#coin-counter, #kill-counter, #time-counter {
+  font-size: 24px;
+  color: white;
+  margin-right: 20px;
+}
+
+#time-counter {
+  margin-left: auto;
+}
+
+#lives-container {
+  display: flex;
+}
+
+.life {
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+}
+
+#player {
+  position: absolute;
+  bottom: 0;
+  left: 50px;
+  width: 50px;
+  height: 50px;
+}
+
+.platform, .coin, .enemy {
+  position: absolute;
+}
+
+.platform {
+  width: 100px;
+  height: 20px;
+  background-size: cover;
+}
+
+.coin {
+  width: 30px;
+  height: 30px;
+  background-size: cover;
+}
+
+.enemy {
+  width: 45px;
+  height: 45px;
+  background-size: cover;
+}
+
+#joystick-container {
+  position: absolute;
+  bottom: 50px;
+  left: 50px;
+  width: 100px;
+  height: 100px;
+}
+
+#shoot-button, #jump-button {
+  position: absolute;
+  bottom: 50px;
+  right: 50px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: red;
+  color: white;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+}
+
+#shoot-button:active, #jump-button:active {
+  background-color: darkred;
+}
+
+.bullet {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: yellow;
+  border-radius: 50%;
+}
+</style>
+</head>
+<body>
+    <div id="start-screen" class="start-screen">
+        <h1>مرحباً بك في لعبة محمد أيمن</h1>
+        <p>اختر البيئة</p>
+        <div class="environment-buttons">
+            <button id="desert" class="environment-button" style="background-image: url('https://i.ibb.co/72j8825/desert.png')"></button>
+            <button id="ocean" class="environment-button" style="background-image: url('https://i.ibb.co/5h2wJrh/ocean.png')"></button>
+            <button id="jungle" class="environment-button" style="background-image: url('https://i.ibb.co/JjYGXc2/jungle.png')"></button>
+        </div>
+        <button id="start-game" disabled>بدء اللعبة</button>
+    </div>
+
+    <div id="game-container" style="display: none;">
+        <div id="game-over-screen" class="hidden">
+            <h1>حظاً أوفر</h1>
+            <div id="summary">
+                <p id="coin-summary">Coins: 0</p>
+                <p id="kill-summary">Kills: 0</p>
+                <p id="time-summary">Time: 0s</p>
+            </div>
+            <button id="restart-button">بدء اللعبة مرة أخرى</button>
+        </div>
+
+        <div id="score-container">
+            <span id="coin-counter">Coins: 0</span>
+            <span id="kill-counter">Kills: 0</span>
+            <span id="time-counter">Time: 0s</span>
+            <div id="lives-container"></div>
+        </div>
+
+        <img id="player" src="" alt="Player">
+
+        <div id="platforms"></div>
+        <div id="coins"></div>
+        <div id="enemies"></div>
+
+        <div id="joystick-container"></div>
+        <button id="jump-button">Jump</button>
+        <button id="shoot-button">Shoot</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.9.1/nipplejs.min.js"></script>
+    <script>
+    // Define asset URLs for each environment
+    const assets = {
+        jungle: {
+            background: 'https://i.ibb.co/kBzb4cG/background.jpg',
+            player: 'https://i.ibb.co/58Db9dj/mario.png',
+            platform: 'https://i.ibb.co/YXCCF2J/platform.png',
+            coin: 'https://i.ibb.co/FVS5zPw/coin.png',
+            enemy: 'https://i.ibb.co/pKxht9K/enemy.png',
+            heart: 'https://i.ibb.co/xsnzyY8/heart.png'
+        },
+        ocean: {
+            background: 'https://i.ibb.co/z292cRf/background.jpg',
+            player: 'https://i.ibb.co/MkTDQ1Z/mario.png',
+            platform: 'https://i.ibb.co/KNYWr2h/platform.png',
+            coin: 'https://i.ibb.co/SBkJkRz/coin.png',
+            enemy: 'https://i.ibb.co/0CX48jr/enemy.png',
+            heart: 'https://i.ibb.co/QQhdNxh/heart.png'
+        },
+        desert: {
+            background: 'https://i.ibb.co/7QBZ8DY/background.jpg',
+            player: 'https://i.ibb.co/hYknGVp/mario.png',
+            platform: 'https://i.ibb.co/LZRkMjN/platform.png',
+            coin: 'https://i.ibb.co/xDNRP1Z/coin.png',
+            enemy: 'https://i.ibb.co/drSr5r7/enemy.png',
+            heart: 'https://i.ibb.co/ky0RQrS/heart.png'
+        }
+    };
+
+    let selectedEnvironment = '';
+    let currentAssets;
+    const startScreen = document.getElementById('start-screen');
+    const gameContainer = document.getElementById('game-container');
+    const environmentButtons = document.querySelectorAll('.environment-button');
+    const startButton = document.getElementById('start-game');
+
+    environmentButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            selectedEnvironment = button.id;
+            environmentButtons.forEach(btn => btn.style.opacity = '0.5');
+            button.style.opacity = '1';
+            startButton.disabled = false;
+        });
+    });
+
+    startButton.addEventListener('click', () => {
+        if (selectedEnvironment) {
+            startScreen.style.display = 'none';
+            gameContainer.style.display = 'block';
+            currentAssets = assets[selectedEnvironment];
+            initializeGame();
+        }
+    });
+
+    function initializeGame() {
+        // Set the correct assets based on the selected environment
+        document.getElementById('game-container').style.backgroundImage = `url('${currentAssets.background}')`;
+        document.getElementById('player').src = currentAssets.player;
+
+        // Initialize game variables
+        const player = document.getElementById("player");
+        const platforms = document.getElementById("platforms");
+        const coins = document.getElementById("coins");
+        const enemies = document.getElementById("enemies");
+        const joystickContainer = document.getElementById("joystick-container");
+        const coinCounter = document.getElementById("coin-counter");
+        const killCounter = document.getElementById("kill-counter");
+        const timeCounter = document.getElementById("time-counter");
+        const livesContainer = document.getElementById("lives-container");
+        const shootButton = document.getElementById("shoot-button");
+        const gameOverScreen = document.getElementById("game-over-screen");
+        const restartButton = document.getElementById("restart-button");
+
+        let playerX = 50;
+        let playerY = 0;
+        let playerVelocityY = 0;
+        let playerVelocityX = 0;
+        const gravity = -0.5;
+        const jumpPower = 10;
+        let coinCount = 0;
+        let killCount = 0;
+        let gameTime = 0;
+        let lives = 4;
+        let worldSpeed = 2;
+        const acceleration = 0.0001;
+        const worldRightBoundary = window.innerWidth - 100;
+
+        function createPlatform(x, y) {
+            const platform = document.createElement('div');
+            platform.className = 'platform';
+            platform.style.left = x + 'px';
+            platform.style.bottom = y + 'px';
+            platform.style.backgroundImage = `url('${currentAssets.platform}')`;
+            platforms.appendChild(platform);
+        }
+
+        function createCoin(x, y) {
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            coin.style.left = x + 'px';
+            coin.style.bottom = y + 'px';
+            coin.style.backgroundImage = `url('${currentAssets.coin}')`;
+            coins.appendChild(coin);
+        }
+
+        function createEnemy(x, y) {
+            const enemy = document.createElement('div');
+            enemy.className = 'enemy';
+            enemy.style.left = x + 'px';
+            enemy.style.bottom = y + 'px';
+            enemy.style.backgroundImage = `url('${currentAssets.enemy}')`;
+            enemies.appendChild(enemy);
+        }
+
+        function createBullet(x, y) {
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            bullet.style.left = x + 'px';
+            bullet.style.bottom = y + 'px';
+            document.getElementById('game-container').appendChild(bullet);
+            moveBullet(bullet);
+        }
+
+        function generateWorld() {
+            for (let i = 0; i < 5; i++) {
+                const platformX = worldRightBoundary + i * 300;
+                const platformY = Math.random() * 200 + 50;
+                createPlatform(platformX, platformY);
+                
+                if (Math.random() < 0.5) {
+                    createCoin(platformX + 30, platformY + 30);
+                }
+                if (Math.random() < 0.3) {
+                    createEnemy(platformX + 50, platformY + 20);
+                }
+            }
+        }
+
+        function initializeWorld() {
+            createPlatform(100, 100);
+            createPlatform(250, 150);
+            createPlatform(400, 200);
+            createCoin(120, 130);
+            createCoin(270, 180);
+            createCoin(420, 230);
+            createEnemy(350, 100);
+        }
+
+        function movePlayer() {
+            playerVelocityY += gravity;
+            playerX += playerVelocityX;
+            playerY += playerVelocityY;
+
+            if (playerX < 0) playerX = 0;
+            if (playerX > window.innerWidth - 50) playerX = window.innerWidth - 50;
+
+            player.style.left = playerX + 'px';
+            player.style.bottom = playerY + 'px';
+
+            let onPlatform = false;
+
+            document.querySelectorAll('.platform').forEach(platform => {
+                const platformRect = platform.getBoundingClientRect();
+                const playerRect = player.getBoundingClientRect();
+                if (playerRect.right > platformRect.left &&
+                    playerRect.left < platformRect.right &&
+                    playerRect.bottom > platformRect.top &&
+                    playerRect.top < platformRect.bottom) {
+                    onPlatform = true;
+                    playerVelocityY = 0;
+                    playerY = platformRect.top - playerRect.height + window.innerHeight - platformRect.bottom;
+                }
+            });
+
+            if (!onPlatform && playerY < 0) {
+                playerY = 0;
+                playerVelocityY = 0;
+            }
+
+            document.querySelectorAll('.coin').forEach(coin => {
+                const coinRect = coin.getBoundingClientRect();
+                const playerRect = player.getBoundingClientRect();
+                if (playerRect.right > coinRect.left &&
+                    playerRect.left < coinRect.right &&
+                    playerRect.bottom > coinRect.top &&
+                    playerRect.top < coinRect.bottom) {
+                    coin.remove();
+                    coinCount++;
+                    coinCounter.textContent = `Coins: ${coinCount}`;
+                }
+            });
+
+            document.querySelectorAll('.enemy').forEach(enemy => {
+                const enemyRect = enemy.getBoundingClientRect();
+                const playerRect = player.getBoundingClientRect();
+                if (playerRect.right > enemyRect.left &&
+                    playerRect.left < enemyRect.right &&
+                    playerRect.bottom > enemyRect.top &&
+                    playerRect.top < enemyRect.bottom) {
+                    lives--;
+                    updateLives();
+                    if (lives === 0) {
+                        showGameOverScreen();
+                    } else {
+                        playerX = 50;
+                        playerY = 0;
+                    }
+                }
+            });
+
+            requestAnimationFrame(movePlayer);
+        }
+
+        function updateLives() {
+            livesContainer.innerHTML = '';
+            for (let i = 0; i < lives; i++) {
+                const life = document.createElement('img');
+                life.src = currentAssets.heart;
+                life.className = 'life';
+                livesContainer.appendChild(life);
+            }
+        }
+
+        function resetGame() {
+            lives = 4;
+            coinCount = 0;
+            killCount = 0;
+            gameTime = 0;
+            playerX = 50;
+            playerY = 0;
+            playerVelocityY = 0;
+            playerVelocityX = 0;
+            worldSpeed = 2;
+            
+            coinCounter.textContent = `Coins: ${coinCount}`;
+            killCounter.textContent = `Kills: ${killCount}`;
+            timeCounter.textContent = `Time: ${gameTime}s`;
+            updateLives();
+            
+            platforms.innerHTML = '';
+            coins.innerHTML = '';
+            enemies.innerHTML = '';
+            
+            initializeWorld();
+            gameOverScreen.classList.add('hidden');
+        }
+
+        function moveWorld() {
+            worldSpeed += acceleration;
+            document.querySelectorAll('.platform, .coin, .enemy').forEach(element => {
+                const currentLeft = parseFloat(element.style.left);
+                element.style.left = (currentLeft - worldSpeed) + 'px';
+                if (currentLeft < -100) {
+                    element.remove();
+                }
+            });
+
+            if (platforms.children.length < 3) {
+                generateWorld();
+            }
+        }
+
+        function shoot() {
+            const bulletX = playerX + 50; 
+            const bulletY = playerY + 25; 
+            createBullet(bulletX, bulletY);
+        }
+
+        shootButton.addEventListener('click', shoot);
+
+        function moveBullet(bullet) {
+            const bulletSpeed = 10;
+            let bulletX = parseFloat(bullet.style.left);
+            const interval = setInterval(() => {
+                bulletX += bulletSpeed;
+                bullet.style.left = bulletX + 'px';
+
+                if (bulletX > window.innerWidth) {
+                    bullet.remove();
+                    clearInterval(interval);
+                }
+
+                document.querySelectorAll('.enemy').forEach(enemy => {
+                    const bulletRect = bullet.getBoundingClientRect();
+                    const enemyRect = enemy.getBoundingClientRect();
+                    if (bulletRect.right > enemyRect.left &&
+                        bulletRect.left < enemyRect.right &&
+                        bulletRect.bottom > enemyRect.top &&
+                        bulletRect.top < enemyRect.bottom) {
+                        enemy.remove();
+                        bullet.remove();
+                        clearInterval(interval);
+                        killCount++;
+                        killCounter.textContent = `Kills: ${killCount}`;
+                    }
+                });
+            }, 16);
+        }
+
+        function showGameOverScreen() {
+            gameOverScreen.classList.remove('hidden');
+            const previousBestScore = JSON.parse(localStorage.getItem('bestScore')) || { coins: 0, kills: 0, time: 0 };
+            const bestCoins = Math.max(previousBestScore.coins, coinCount);
+            const bestKills = Math.max(previousBestScore.kills, killCount);
+            const bestTime = Math.max(previousBestScore.time, gameTime);
+            localStorage.setItem('bestScore', JSON.stringify({ coins: bestCoins, kills: bestKills, time: bestTime }));
+            document.getElementById("coin-summary").textContent = `Coins: ${coinCount} (Best: ${bestCoins})`;
+            document.getElementById("kill-summary").textContent = `Kills: ${killCount} (Best: ${bestKills})`;
+            document.getElementById("time-summary").textContent = `Time: ${gameTime}s (Best: ${bestTime}s)`;
+        }
+
+        restartButton.addEventListener('click', () => {
+            resetGame();
+        });
+
+        const joystick = nipplejs.create({
+            zone: joystickContainer,
+            mode: 'static',
+            position: { left: '50%', top: '50%' },
+            color: 'white'
+        });
+
+        joystick.on('move', (evt, data) => {
+            const angle = data.angle.degree;
+            const force = Math.min(data.force, 1);
+
+            if (angle >= 45 && angle < 135) {
+                playerVelocityY = jumpPower * force;
+            } else if (angle >= 225 && angle < 315) {
+                playerVelocityY = -jumpPower * force;
+            } else if (angle >= 135 && angle < 225) {
+                playerVelocityX = -5 * force;
+            } else {
+                playerVelocityX = 5 * force;
+            }
+        });
+
+        joystick.on('end', () => {
+            playerVelocityY = 0;
+            playerVelocityX = 0;
+        });
+
+        let isShooting = false;
+
+        shootButton.addEventListener('mousedown', () => {
+            if (!isShooting) {
+                isShooting = true;
+                shoot();
+            }
+        });
+
+        shootButton.addEventListener('touchstart', () => {
+            if (!isShooting) {
+                isShooting = true;
+                shoot();
+            }
+        });
+
+        shootButton.addEventListener('mouseup', () => {
+            isShooting = false;
+        });
+
+        shootButton.addEventListener('touchend', () => {
+            isShooting = false;
+        });
+
+        function startWorldMovement() {
+            moveWorld();
+            requestAnimationFrame(startWorldMovement);
+        }
+
+        function updateTime() {
+            gameTime++;
+            timeCounter.textContent = `Time: ${gameTime}s`;
+        }
+
+        // Initialize the game
+        initializeWorld();
+        movePlayer();
+        startWorldMovement();
+        setInterval(updateTime, 1000);
+        updateLives();
+    }
+    </script>
+</body></html>
